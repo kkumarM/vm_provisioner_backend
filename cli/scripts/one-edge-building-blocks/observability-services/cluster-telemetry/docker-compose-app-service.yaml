@@ -1,0 +1,91 @@
+# Copyright 2021 Intel Corporation
+
+# This software and the related documents are Intel copyrighted materials,
+# and your use of them is governed by the express license under which they
+# were provided to you ("License"). Unless the License provides otherwise,
+# you may not use, modify, copy, publish, distribute, disclose or transmit
+# this software or the related documents without Intel's prior written permission.
+
+# This software and the related documents are provided as is, with no express or
+# implied warranties, other than those that are expressly stated in the License
+
+
+version: '3.2'
+
+services:
+  grafana:
+    hostname: grafana
+    build:
+      context: ./.
+    image: grafana-render:1.0
+    container_name: cluster_grafana
+    ports:
+      - '3212:3000'
+      - '8687:8686'  
+    depends_on:
+      - prometheus      
+    environment:
+      - HOST_IP=${HOST_IP}
+      - GRAFANA_HOST=grafana
+      - PROMETHEUS_HOST=prometheus
+      - LOCAL_HOST=0.0.0.0
+      - NO_PROXY=prometheus,node-exporter
+      - no_proxy=prometheus,node-exporter
+    volumes:
+      - ./configs/grafana_dashboards:/etc/grafana/provisioning/dashboards/
+      - ./configs/grafana_datasources:/etc/grafana/provisioning/datasources/
+      - ./configs/grafana.ini:/etc/grafana/grafana.ini:rw
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:latest
+    hostname: prometheus
+    container_name: cluster_prometheus    
+    ports:
+      - '9091:9090'
+    command:
+    - --config.file=/etc/prometheus/prometheus.yml
+    depends_on:
+      - node-exporter
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:rw
+    environment:
+      - NO_PROXY=grafana,node_exporter
+      - no_proxy=grafana,node_exporter
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3  
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: cluster_node_exporter
+    restart: unless-stopped
+    ports:
+      - '9111:9100'
+    networks:
+      - app_network
+    environment:
+      - NO_PROXY=grafana,prometheus
+      - no_proxy=grafana,prometheus    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3  
+
+
+networks:
+  app_network:
+    driver: "bridge"
+
+

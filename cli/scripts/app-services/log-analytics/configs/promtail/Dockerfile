@@ -1,0 +1,8 @@
+FROM grafana/promtail:2.4.2
+
+ARG PROMTAIL_FILE
+
+ENV PROMTAIL_FILE=${PROMTAIL_FILE}
+
+ADD ${PROMTAIL_FILE} /etc/promtail/
+

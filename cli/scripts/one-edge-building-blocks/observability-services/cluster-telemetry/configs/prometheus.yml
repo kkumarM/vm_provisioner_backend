@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 10s
+
+scrape_configs:
+- job_name: prometheus
+  scrape_interval: 5s
+  static_configs:
+  - targets:
+    - prometheus:9091
+
+- job_name: node-exporter
+  scrape_interval: 5s
+  static_configs:
+  - targets:
+    - node-exporter:9111
+
+
+      #remote_write:
+      #- url: "http://influxdb:8086/api/v1/prom/write?db=prometheus"
+
+      #remote_read:
+      #- url: "http://influxdb:8086/api/v1/prom/read?db=prometheus"
+

@@ -1,0 +1,94 @@
+# Copyright 2021 Intel Corporation
+
+# This software and the related documents are Intel copyrighted materials,
+# and your use of them is governed by the express license under which they
+# were provided to you ("License"). Unless the License provides otherwise,
+# you may not use, modify, copy, publish, distribute, disclose or transmit
+# this software or the related documents without Intel's prior written permission.
+
+# This software and the related documents are provided as is, with no express or
+# implied warranties, other than those that are expressly stated in the License
+
+
+version: '3.2'
+services:
+  grafana:
+    hostname: grafana
+    container_name: system_grafana
+    build:
+      context: ./.
+    image: grafana-render:1.0
+    ports:
+      - '3211:3000'
+      - '8686:8686'
+    depends_on:      
+      - influxdb
+    links:
+      - influxdb 
+    environment:
+      - HOST_IP=${HOST_IP}
+      - GRAFANA_HOST=grafana
+      - INFLUXDB_HOST=influxdb       
+      - LOCAL_HOST=0.0.0.0      
+      - NO_PROXY=influxdb,collectd
+      - no_proxy=influxdb,collectd    
+    volumes:
+      - ./configs/grafana_dashboards:/etc/grafana/provisioning/dashboards/
+      - ./configs/grafana_datasources:/etc/grafana/provisioning/datasources/
+      - ./configs/grafana.ini:/etc/grafana/grafana.ini:rw
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3  
+      
+  influxdb:
+    image: influxdb:1.7.9-alpine
+    hostname: influxdb
+    container_name: system_influxdb    
+    ports:
+      - '8087:8086'
+    depends_on:
+      - collectd
+    volumes:
+      - ./configs/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf:ro      
+      - ./configs/influxdb/types.db:/usr/share/collectd/types.db:ro
+    environment:
+      - NO_PROXY=grafana,collectd
+      - no_proxy=grafana,collectd    
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+  
+  collectd:
+    image: fr3nd/collectd:5.5.0-1    
+    hostname: collectd
+    container_name: collectd
+    privileged: true
+    environment:
+      - NO_PROXY=influxdb
+      - no_proxy=influxdb
+    volumes:
+      - ./configs/collectd.conf:/etc/collectd/collectd.conf
+    networks:
+      - app_network
+    ports:
+      - '25826:25826'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  app_network:
+    driver: "bridge"
+
+
+

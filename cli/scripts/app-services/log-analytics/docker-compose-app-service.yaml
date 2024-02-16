@@ -1,0 +1,76 @@
+# Copyright 2021 Intel Corporation
+
+# This software and the related documents are Intel copyrighted materials,
+# and your use of them is governed by the express license under which they
+# were provided to you ("License"). Unless the License provides otherwise,
+# you may not use, modify, copy, publish, distribute, disclose or transmit
+# this software or the related documents without Intel's prior written permission.
+
+# This software and the related documents are provided as is, with no express or
+# implied warranties, other than those that are expressly stated in the License
+
+
+version: '3.2'
+
+services:
+  grafana:
+    image: grafana/grafana:latest
+    hostname: grafana
+    container_name: loki_grafana    
+    ports:
+      - '3214:3000'
+    environment:
+      - HOST_IP=${HOST_IP}
+      - GRAFANA_HOST=grafana
+      - LOCAL_HOST=0.0.0.0      
+      - NO_PROXY=promtail,loki
+      - no_proxy=promtail,loki
+    volumes:
+      - ./configs/grafana.ini:/etc/grafana/grafana.ini      
+      - ./configs/grafana_dashboards:/etc/grafana/provisioning/dashboards/    
+      - ./configs/grafana_datasources:/etc/grafana/provisioning/datasources/    
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3  
+
+  loki:
+    image: grafana/loki:2.4.2
+    hostname: loki
+    container_name: loki
+    build:
+      context: ./configs/loki      
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./configs/loki/loki-docker.yaml:/mnt/config/loki-docker.yaml    
+    command:
+    - --config.file=/etc/loki/loki-docker.yaml
+    networks:
+      - app_network
+
+  promtail:
+    image: grafana/promtail:2.4.2
+    hostname: promtail
+    container_name: promtail
+    build:
+      context: ./configs/promtail      
+    volumes:
+      - ./configs/promtail/promtail-config.yaml:/mnt/config/promtail-config.yaml      
+      - ${PWD}/results/logs:/host/containers
+        #- /var/lib/docker/containers:/host/containers  
+    command:
+    - --config.file=/etc/promtail/promtail-config.yaml
+    links:
+      - loki
+    networks:
+      - app_network
+  
+networks:
+  app_network:
+          driver: "bridge"
+
+
