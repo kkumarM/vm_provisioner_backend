@@ -1,8 +1,7 @@
 #!/usr/bin/env python3 
 
 from flask import Flask
-from get_vms import get_vm_list
-
+from __get_vms import get_vm_list
 app = Flask(__name__)
 
 @app.route("/get_hw_details",methods=['GET'])

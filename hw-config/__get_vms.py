@@ -4,7 +4,7 @@ from pymongo import MongoClient
 
 client = MongoClient('10.40.128.197', 27017)
 
-def get_vm_list()
+def get_vm_list():
     vm_list = []
 
     mydb = client["dev_test"]

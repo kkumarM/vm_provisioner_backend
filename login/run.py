@@ -4,7 +4,7 @@ from flask import Flask
 
 app = Flask(__name__)
 
-@app.route("/login",methods='GET')
+@app.route("/login",methods=['GET'])
 def login():
     #data = get
     return "hello World"
