@@ -6,8 +6,9 @@ app = Flask(__name__)
 
 @app.route("/get_hw_details",methods=['GET'])
 def get_vm():
-    data = get_vm_list()
-    return data
+    #data = get_vm_list()
+    #return data
+    return "hello world"
 
 if __name__ == "__main__":
    app.run(host='0.0.0.0', port= 5001, debug= True)

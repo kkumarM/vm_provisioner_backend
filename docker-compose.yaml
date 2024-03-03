@@ -1,0 +1,253 @@
+# Copyright (C) 2024-2025 Baxter Corporation
+# SPDX-License-Identifier: Apache-2.0
+# Author: Karthik Kumaar <karthik_kumaar_mahudeeswaran@baxter.com>
+
+version: "3.9"
+
+services:
+  eval_nginx:
+    build: ./eval_nginx
+    hostname: evalnginx
+    container_name: eval_nginx
+    networks:
+      - app_network
+    ports:
+      - "443:443"
+    volumes:
+      - ./eval_nginx/eval.intel.com/ssl_passwords.txt:/var/lib/nginx/ssl_passwords.txt:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+  eval_home:
+    build: ./eval_home
+    hostname: evalhome
+    container_name: eval_home
+    networks:
+      - app_network
+    ports:
+      - "5001:5001"
+    volumes:
+      - /opt/certs:/usr/app/certs:ro
+      - /opt/vault/vault-certs:/usr/app/vault-certs:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+  eval_login:
+    build: ./eval_login
+    hostname: login
+    container_name: eval_login
+    networks:
+      - app_network
+    ports:
+      - "5002:5002"
+    volumes:
+      - /opt/certs:/usr/app/certs:ro
+      - /opt/vault/vault-certs:/usr/app/vault-certs:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+  eval_remote_access:
+    build: ./eval_remote_access
+    hostname: remote_access
+    container_name: eval_remote_access
+    networks:
+      - app_network
+    ports:
+      - "5021:5021"
+    volumes:
+      - /opt/certs:/usr/app/certs:ro
+      - /opt/vault/vault-certs:/usr/app/vault-certs:ro
+      - /opt/guac-certs:/usr/app/guac-certs:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+  eval_workloads:
+    build: ./eval_workloads
+    hostname: workloads
+    container_name: eval_workloads
+    networks:
+      - app_network
+    ports:
+      - "5014:5014"
+    volumes:
+      - /opt/certs:/usr/app/certs:ro
+      - /opt/vault/vault-certs:/usr/app/vault-certs:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+  eval_archive:
+    build: ./eval_archive
+    hostname: archive
+    container_name: eval_archive
+    networks:
+      - app_network
+    ports:
+      - "5015:5015"
+    volumes:
+      - /opt/certs:/usr/app/certs:ro
+      - /opt/vault/vault-certs:/usr/app/vault-certs:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+  eval_hw_selection:
+    build: ./eval_hw_selection
+    hostname: HW_selection
+    container_name: eval_hw_selection
+    environment:
+      - HOST_IP=$HOST_IP
+    networks:
+      - app_network
+    ports:
+      - "5011:5011"
+    volumes:
+      - /opt/certs:/usr/app/certs:ro
+      - /opt/vault/vault-certs:/usr/app/vault-certs:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+  eval_hw_provisioning:
+    build: ./eval_hw_provisioning
+    hostname: HW_provisioning
+    container_name: eval_hw_provisioning
+    environment:
+      - HOST_IP=$HOST_IP
+    networks:
+      - app_network
+    ports:
+      - "5012:5012"
+    volumes:
+      - /opt/certs:/usr/app/certs:ro
+      - /opt/vault/vault-certs:/usr/app/vault-certs:ro
+      - /opt/vcenter/v-certs:/usr/app/v-certs:ro
+      - /opt/mongo-certs:/usr/app/mongo-certs:ro
+      - /opt/guac-certs:/usr/app/guac-certs:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+  eval_marketplace:
+    build: ./eval_marketplace
+    hostname: marketplace
+    container_name: eval_marketplace
+    environment:
+      - HOST_IP=$HOST_IP
+    networks:
+      - app_network
+    ports:
+      - "5020:5020"
+      - "8200:8200"
+    volumes:
+      - /opt/certs:/usr/app/certs:ro
+      - /opt/vault/vault-certs:/usr/app/vault-certs:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1024M
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+  eval_redis:
+    image: redis
+    hostname: redis
+    container_name: eval_redis
+    environment:
+      - HOST_IP=$HOST_IP
+    networks:
+      - app_network
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  app_network:
+    driver: "bridge"
