@@ -1,4 +1,4 @@
 flask
 uwsgi
 jwt
-
+flask-cors
